@@ -1,0 +1,19 @@
+# data — never commit
+data/*
+!data/.gitkeep
+
+# python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.ipynb_checkpoints/
+
+# models
+models/*
+!models/.gitkeep
+
+# demo artifacts need committing — add exceptions here once they exist
+
+# os
+.DS_Store
