@@ -32,11 +32,8 @@ def build_test_liked(test, like_threshold=4.0):
     return liked[liked.apply(len) >= 1]
 
 
-def evaluate(recommend_fn, test_liked, k=10, n_users=None, seed=42):
-    """Average recall, precision and NDCG at k across users.
-    
-    recommend_fn(user_id, k) -> list of movieIds, best first
-    """
+def score_users(recommend_fn, test_liked, k=10, n_users=None, seed=42):
+    """Recall, precision and NDCG at k for each user, one row per user."""
     users = test_liked.index
     if n_users is not None and n_users < len(users):
         users = pd.Series(users).sample(n_users, random_state=seed).values
@@ -46,8 +43,17 @@ def evaluate(recommend_fn, test_liked, k=10, n_users=None, seed=42):
         relevant = test_liked.loc[u]
         recs = recommend_fn(u, k)
         rows.append({
+            "userId":    u,
             "recall":    recall_at_k(recs, relevant, k),
             "precision": precision_at_k(recs, relevant, k),
             "ndcg":      ndcg_at_k(recs, relevant, k),
         })
-    return pd.DataFrame(rows).mean().round(4)
+    return pd.DataFrame(rows).set_index("userId")
+
+
+def evaluate(recommend_fn, test_liked, k=10, n_users=None, seed=42):
+    """Average recall, precision and NDCG at k across users.
+    
+    recommend_fn(user_id, k) -> list of movieIds, best first
+    """
+    return score_users(recommend_fn, test_liked, k, n_users, seed).mean().round(4)
